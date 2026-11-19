@@ -1,0 +1,2334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مُخلّص HR — منصة المخالصات والإجازات والمتابعة</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef6ff',
+              100: '#d9ebff',
+              500: '#1d4ed8',
+              600: '#1e40af',
+              700: '#1e3a8a',
+              800: '#172554',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background-color: #ffffff !important;
+      }
+      .print-card {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <div id="app" class="flex-1 flex flex-col"></div>
+
+  <script>
+    // ============================================================================
+    // 1. LABOR LAW DEFINITIONS & CALCULATION ENGINES (JORDAN, SAUDI, PALESTINE)
+    // ============================================================================
+    const LAW_PROFILES = {
+      jordan: {
+        id: 'jordan',
+        name: 'القانون الأردني',
+        shortName: 'الأردن',
+        subtitle: 'قانون العمل الأردني رقم (8) لسنة 1996 وتعديلاته + قانون الضمان الاجتماعي',
+        currency: 'دينار أردني (JOD)',
+        currencyCode: 'JOD',
+        badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        dotClass: 'bg-emerald-600',
+        annualLeaveUnder5: 14,
+        annualLeaveOver5: 21,
+        noticeDays: 30,
+        ssEmployeeRate: 0.075,
+        ssEmployerRate: 0.1425,
+        loanMonthlyCapRate: 0.10,
+        rules: [
+          {
+            title: 'مكافأة نهاية الخدمة والضمان الاجتماعي',
+            text: 'إذا كان الموظف مشمولاً بالضمان الاجتماعي (7.5% موظف و14.25% منشأة على الأجر الخاضع)، فإن اشتراكات الضمان تقوم مقام مكافأة نهاية الخدمة ما لم ينص العقد أو النظام الداخلي على مكافأة إضافية. أما غير المشمول بالضمان فيستحق أجر شهر عن كل سنة خدمة.'
+          },
+          {
+            title: 'الإجازات السنوية والعمولات والخصومات',
+            text: 'الإجازة السنوية 14 يوماً لمن خدم أقل من 5 سنوات، وتصبح 21 يوماً بعد 5 سنوات متصلة. تُدخل العمولات الثابتة/المتغيرة ضمن الأجر الخاضع (بمتوسط 12 شهراً عند التسوية)، ويُستثنى بدل التنقل الفعلي وبدل الهاتف. سقف اقتطاع السلفة شهرياً 10% من الأجر.'
+          },
+          {
+            title: 'فترة الإشعار وإنهاء الخدمة',
+            text: 'إشعار خطي قبل شهر واحد (30 يوماً) لإنهاء العقد غير محدد المدة، أو دفع بدل الإشعار. يُستثنى من بدل المكافأة/الإشعار حالات الفصل المشروع المنصوص عليها في المادة (28).'
+          }
+        ]
+      },
+      saudi_citizen: {
+        id: 'saudi_citizen',
+        name: 'نظام العمل السعودي — للسعوديين',
+        shortName: 'السعودية (سعودي)',
+        subtitle: 'نظام العمل السعودي + منصة قوى (عقود محددة وغير محددة المدة) + التأمينات الاجتماعية',
+        currency: 'ريال سعودي (SAR)',
+        currencyCode: 'SAR',
+        badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
+        dotClass: 'bg-blue-600',
+        annualLeaveUnder5: 21,
+        annualLeaveOver5: 30,
+        noticeDays: 60,
+        loanMonthlyCapRate: 0.10,
+        rules: [
+          {
+            title: 'احتساب مكافأة نهاية الخدمة وفق قوى (المادتان 84 و85)',
+            text: 'يستحق العامل نصف شهر عن كل سنة من السنوات الخمس الأولى، وشهر كامل عن كل سنة تلي ذلك على أساس الأجر الأخير ومتوسط العمولات خلال السنة الأخيرة (المادة 86)، مع مراعاة نوع العقد (محدد المدة أو غير محدد المدة) وسبب الإنهاء.'
+          },
+          {
+            title: 'أثر الاستقالة ومدة الخدمة (المادة 85)',
+            text: 'في حال الاستقالة: أقل من سنتين لا يستحق شيئاً؛ من سنتين إلى أقل من 5 سنوات يستحق ثلث المكافأة؛ من 5 إلى أقل من 10 سنوات يستحق ثلثي المكافأة؛ ومن 10 سنوات فأكثر يستحق المكافأة كاملة.'
+          },
+          {
+            title: 'الإجازات السنوية والإشعار والمادة (77)',
+            text: 'الإجازة السنوية 21 يوماً وتُزاد إلى 30 يوماً بعد 5 سنوات متصلة. في العقود غير محددة المدة يُراعى الإشعار (60 يوماً أو حسب العقد)، وفي حالات الإنهاء غير المشروع قد يُحتسب تعويض المادة (77) وفق العقد أو المدة المتبقية/الأجور النظامية.'
+          }
+        ]
+      },
+      saudi_expat: {
+        id: 'saudi_expat',
+        name: 'نظام العمل السعودي — للأجانب',
+        shortName: 'السعودية (أجنبي)',
+        subtitle: 'نظام العمل السعودي لغير السعوديين + منصة قوى (عقود محددة وغير محددة المدة)',
+        currency: 'ريال سعودي (SAR)',
+        currencyCode: 'SAR',
+        badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
+        dotClass: 'bg-sky-600',
+        annualLeaveUnder5: 21,
+        annualLeaveOver5: 30,
+        noticeDays: 60,
+        loanMonthlyCapRate: 0.10,
+        rules: [
+          {
+            title: 'مكافأة نهاية الخدمة للعامل غير السعودي',
+            text: 'يستحق العامل نصف شهر عن كل سنة من السنوات الخمس الأولى، وشهر كامل عن كل سنة تلي ذلك وفق الأجر الأخير ومتوسط العمولات في السنة الأخيرة، مع تطبيق أحكام نوع العقد (محدد أو غير محدد المدة) وسبب الانتهاء في قوى.'
+          },
+          {
+            title: 'العقود محددة وغير محددة المدة وتعويض المادة (77)',
+            text: 'يُبرم العقد محدد المدة أو غير محدد المدة وفق الاتفاق والنظام، ويُراعى أثر انتهاء المدة أو الإشعار أو فسخ العقد غير المشروع (المادة 77) عند تسوية المستحقات.'
+          },
+          {
+            title: 'الإجازات السنوية والخصومات',
+            text: 'الإجازة السنوية 21 يوماً لمن أمضى أقل من 5 سنوات، و30 يوماً بعد 5 سنوات متصلة، ويُحسم بحد أقصى 10% شهرياً لاسترداد القروض أو العهد وفق الضوابط النظامية.'
+          }
+        ]
+      },
+      palestine: {
+        id: 'palestine',
+        name: 'قانون العمل الفلسطيني',
+        shortName: 'فلسطين',
+        subtitle: 'قانون العمل الفلسطيني رقم (7) لسنة 2000 وتعديلاته',
+        currency: 'دينار أردني (JOD)',
+        currencyCode: 'JOD',
+        badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
+        dotClass: 'bg-amber-600',
+        annualLeaveUnder5: 14,
+        annualLeaveOver5: 18,
+        noticeDays: 30,
+        loanMonthlyCapRate: 0.10,
+        rules: [
+          {
+            title: 'مكافأة نهاية الخدمة (المادة 45)',
+            text: 'يستحق العامل الذي قضى سنة فأكثر في العمل مكافأة نهاية خدمة بواقع أجر شهر عن كل سنة قضاها في العمل، ولا تحسب له مكافأة عن كسور السنة في السنة الأولى، وتُحتسب على أساس الأجر الأخير (شاملاً العلاوات الثابتة ومتوسط العمولات).'
+          },
+          {
+            title: 'الإجازات السنوية',
+            text: 'يستحق العامل إجازة سنوية بأجر كامل لا تقل عن أسبوعي عمل (14 يوم عمل) في السنة الأولى، وتُزاد يوماً واحداً عن كل سنة خدمة بحد أقصى 21 يوم عمل حسب القانون أو ما هو أفضل في العقد/اللائحة.'
+          },
+          {
+            title: 'الإشعار وإنهاء الخدمة',
+            text: 'يُلزم الطرف الراغب في إنهاء عقد العمل غير محدد المدة بإشعار الطرف الآخر خطياً قبل شهر على الأقل، أو دفع بدل الإشعار، مع مراعاة الحالات الاستثنائية للفصل دون مكافأة وفق القانون.'
+          }
+        ]
+      }
+    };
+
+    const VALID_LAW_IDS = ['jordan', 'saudi_citizen', 'saudi_expat', 'palestine'];
+
+    function normalizeLawId(rawLaw) {
+      if (rawLaw === 'saudi') return 'saudi_citizen';
+      return VALID_LAW_IDS.includes(rawLaw) ? rawLaw : 'jordan';
+    }
+
+    // ============================================================================
+    // 2. STORAGE & DEFAULT SEED DATA
+    // ============================================================================
+    const STORAGE_KEY = 'mukhallis_hr_workspace_v2';
+
+    const DEFAULT_EMPLOYEES = [
+      {
+        id: 'emp-1',
+        name: 'أحمد العتيبي',
+        role: 'أخصائي مبيعات أول',
+        law: 'saudi_citizen',
+        department: 'المبيعات',
+        hireDate: '2021-03-01',
+        basicSalary: 6500,
+        fixedAllowances: 1500,
+        annualLeaveEntitlement: 21,
+        takenLeaveDays: 12,
+        note: 'متابعة تسوية مستحقات الإجازة وتأكيد عمولات الربع الرابع مع المالية.',
+        reminderTime: '08:30',
+        reminderActive: true,
+        lastNotifiedDate: ''
+      },
+      {
+        id: 'emp-2',
+        name: 'ليلى الخطيب',
+        role: 'منسقة عمليات',
+        law: 'jordan',
+        department: 'العمليات',
+        hireDate: '2022-07-15',
+        basicSalary: 520,
+        fixedAllowances: 130,
+        annualLeaveEntitlement: 14,
+        takenLeaveDays: 6,
+        note: 'مراجعة اشتراك الضمان الاجتماعي وتجديد عقد العمل السنوي.',
+        reminderTime: '08:30',
+        reminderActive: true,
+        lastNotifiedDate: ''
+      },
+      {
+        id: 'emp-3',
+        name: 'طارق أبو سمرة',
+        role: 'محاسب مشاريع',
+        law: 'palestine',
+        department: 'المحاسبة',
+        hireDate: '2020-01-10',
+        basicSalary: 4200,
+        fixedAllowances: 600,
+        annualLeaveEntitlement: 18,
+        takenLeaveDays: 9,
+        note: 'تجهيز شهادة الخبرة ومراجعة رصيد الإجازات السنوية المستحقة.',
+        reminderTime: '08:30',
+        reminderActive: true,
+        lastNotifiedDate: ''
+      }
+    ];
+
+    function getDefaultSettlement(lawId = 'saudi_citizen') {
+      const normalized = normalizeLawId(lawId);
+      const isSaudi = normalized === 'saudi_citizen' || normalized === 'saudi_expat';
+      return {
+        employeeName: 'سامي المنصور',
+        law: normalized,
+        saudiContractType: 'fixed_term', // 'fixed_term' | 'indefinite'
+        hireDate: '2022-01-01',
+        endDate: '2026-11-15',
+        contractEndDate: '2027-01-01', // Used when fixed_term ends early / Art 77
+        terminationType: isSaudi ? 'qiwa_art74_2' : 'termination_without_cause',
+        basicSalary: isSaudi ? 6000 : 500,
+        fixedAllowances: isSaudi ? 1500 : 100,
+        excludedAllowances: isSaudi ? 500 : 60,
+        twelveMonthCommissionsTotal: isSaudi ? 12000 : 1800,
+        remainingLeaveDays: 8,
+        unpaidSalary: isSaudi ? 1500 : 250,
+        loanBalance: isSaudi ? 500 : 120,
+        noticeDays: isSaudi ? 60 : 30,
+        applyNoticePay: false,
+        art77CompensationAmount: 0,
+        socialSecurityCovered: true,
+        customContractGratuity: false
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('mukhallis_hr_workspace_v1');
+        if (!raw) {
+          return {
+            activeLaw: 'saudi_citizen',
+            activeTab: 'settlement',
+            employees: DEFAULT_EMPLOYEES,
+            settlement: getDefaultSettlement('saudi_citizen'),
+            leaveSim: {
+              law: 'saudi_citizen',
+              employeeName: 'موظف عام',
+              annualEntitlement: 21,
+              takenDays: 10,
+              currentMonth: 11,
+              currentDayOfMonth: 7,
+              useLawDefaultEntitlement: false
+            },
+            morningAlertOpen: false,
+            simulatedAlert: false
+          };
+        }
+        const parsed = JSON.parse(raw);
+        const activeLaw = normalizeLawId(parsed.activeLaw);
+        const baseSettlement = getDefaultSettlement(parsed.settlement?.law || activeLaw);
+        return {
+          activeLaw,
+          activeTab: parsed.activeTab || 'settlement',
+          employees: Array.isArray(parsed.employees)
+            ? parsed.employees.map((emp) => ({ ...emp, law: normalizeLawId(emp.law) }))
+            : DEFAULT_EMPLOYEES,
+          settlement: {
+            ...baseSettlement,
+            ...(parsed.settlement || {}),
+            law: normalizeLawId(parsed.settlement?.law || activeLaw),
+            saudiContractType: parsed.settlement?.saudiContractType === 'indefinite' ? 'indefinite' : 'fixed_term',
+            noticeDays: Number(parsed.settlement?.noticeDays) > 0 ? Number(parsed.settlement.noticeDays) : ((normalizeLawId(parsed.settlement?.law || activeLaw).startsWith('saudi')) ? 60 : 30),
+            art77CompensationAmount: Math.max(0, Number(parsed.settlement?.art77CompensationAmount) || 0)
+          },
+          leaveSim: {
+            law: normalizeLawId(parsed.leaveSim?.law || activeLaw),
+            employeeName: 'موظف عام',
+            annualEntitlement: 21,
+            takenDays: 10,
+            currentMonth: 11,
+            currentDayOfMonth: 7,
+            useLawDefaultEntitlement: false,
+            ...(parsed.leaveSim || {}),
+            law: normalizeLawId(parsed.leaveSim?.law || activeLaw)
+          },
+          morningAlertOpen: false,
+          simulatedAlert: false
+        };
+      } catch (err) {
+        console.error('Error loading state:', err);
+        return {
+          activeLaw: 'saudi_citizen',
+          activeTab: 'settlement',
+          employees: DEFAULT_EMPLOYEES,
+          settlement: getDefaultSettlement('saudi_citizen'),
+          leaveSim: {
+            law: 'saudi_citizen',
+            employeeName: 'موظف عام',
+            annualEntitlement: 21,
+            takenDays: 10,
+            currentMonth: 11,
+            currentDayOfMonth: 7,
+            useLawDefaultEntitlement: false
+          },
+          morningAlertOpen: false,
+          simulatedAlert: false
+        };
+      }
+    }
+
+    let state = loadState();
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          activeLaw: state.activeLaw,
+          activeTab: state.activeTab,
+          employees: state.employees,
+          settlement: state.settlement,
+          leaveSim: state.leaveSim
+        }));
+      } catch (err) {
+        console.error('Error saving state:', err);
+      }
+    }
+
+    // ============================================================================
+    // 3. CALCULATION LOGIC FOR TENURE, SETTLEMENT (QIWA-ALIGNED) & LEAVE ACCRUAL
+    // ============================================================================
+    function calculateTenure(hireDateStr, endDateStr) {
+      const start = new Date(hireDateStr);
+      const end = new Date(endDateStr);
+      if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
+        return {
+          years: 0,
+          months: 0,
+          days: 0,
+          totalYearsExact: 0,
+          totalYears365: 0,
+          totalMonths: 0,
+          totalDays: 0
+        };
+      }
+
+      const diffMs = end.getTime() - start.getTime();
+      const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const totalYears365 = totalDays / 365;
+      const totalMonths = totalDays / 30.4167;
+
+      let years = end.getFullYear() - start.getFullYear();
+      let months = end.getMonth() - start.getMonth();
+      let days = end.getDate() - start.getDate();
+
+      if (days < 0) {
+        months -= 1;
+        const prevMonthDate = new Date(end.getFullYear(), end.getMonth(), 0);
+        days += prevMonthDate.getDate();
+      }
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      const totalYearsExact = Math.max(0, years) + (Math.max(0, months) / 12) + (Math.max(0, days) / 365);
+
+      return {
+        years: Math.max(0, years),
+        months: Math.max(0, months),
+        days: Math.max(0, days),
+        totalYearsExact,
+        totalYears365,
+        totalMonths,
+        totalDays
+      };
+    }
+
+    function calculateSaudiGratuityByYears(yearsValue, baseWage) {
+      const yrs = Math.max(0, Number(yearsValue) || 0);
+      const firstFiveYears = Math.min(yrs, 5);
+      const afterFiveYears = Math.max(0, yrs - 5);
+      return (firstFiveYears * 0.5 * baseWage) + (afterFiveYears * 1.0 * baseWage);
+    }
+
+    function getRecommendedNoticeDaysForSaudi(contractType, terminationType) {
+      if (contractType !== 'indefinite') return 0;
+      if (
+        terminationType === 'qiwa_art75' ||
+        terminationType === 'qiwa_resignation' ||
+        terminationType === 'resignation'
+      ) {
+        return 60;
+      }
+      return 0;
+    }
+
+    function calculateSettlement(s) {
+      const tenure = calculateTenure(s.hireDate, s.endDate);
+      const basic = Math.max(0, Number(s.basicSalary) || 0);
+      const fixedAllow = Math.max(0, Number(s.fixedAllowances) || 0);
+      const excludedAllow = Math.max(0, Number(s.excludedAllowances) || 0);
+      const commTotal12M = Math.max(0, Number(s.twelveMonthCommissionsTotal) || 0);
+      const monthsDivisor = tenure.totalMonths > 0 && tenure.totalMonths < 12 ? tenure.totalMonths : 12;
+      const avgMonthlyCommission = commTotal12M / monthsDivisor;
+
+      // Settlement base wage = basic salary + fixed allowances + average monthly commission
+      const settlementBaseWage = basic + fixedAllow + avgMonthlyCommission;
+      const dailyWage = settlementBaseWage / 30;
+
+      const remainingLeave = Math.max(0, Number(s.remainingLeaveDays) || 0);
+      const leavePayout = remainingLeave * dailyWage;
+      const unpaidSal = Math.max(0, Number(s.unpaidSalary) || 0);
+      const loanBal = Math.max(0, Number(s.loanBalance) || 0);
+      const customArt77 = Math.max(0, Number(s.art77CompensationAmount) || 0);
+
+      const isSaudiLaw = s.law === 'saudi_citizen' || s.law === 'saudi_expat';
+      let gratuity = 0;
+      let noticeAmount = 0;
+      let compensationAmount = 0;
+      let lawNote = '';
+
+      if (isSaudiLaw) {
+        const isExpat = s.law === 'saudi_expat';
+        const categoryLabel = isExpat ? 'للعامل غير السعودي' : 'للعامل السعودي';
+        const contractType = s.saudiContractType === 'indefinite' ? 'indefinite' : 'fixed_term';
+        const contractLabel = contractType === 'indefinite' ? 'عقد غير محدد المدة' : 'عقد محدد المدة';
+        const noticeDays = Math.max(0, Number(s.noticeDays) || 60);
+
+        // Qiwa-aligned exact service tenure (years + months/12 + days/365)
+        const yrs = tenure.totalYearsExact;
+        const rawGratuity = calculateSaudiGratuityByYears(yrs, settlementBaseWage);
+
+        if (s.applyNoticePay && noticeDays > 0) {
+          noticeAmount = (settlementBaseWage / 30) * noticeDays;
+        }
+
+        switch (s.terminationType) {
+          case 'qiwa_art74_1':
+            gratuity = rawGratuity;
+            lawNote = `اتفاق الطرفين على إنهاء العقد (المادة 74/1 - قوى) [${contractLabel}]: يستحق ${categoryLabel} مكافأة نهاية الخدمة كاملة (${yrs.toFixed(2)} سنة).`;
+            break;
+
+          case 'qiwa_art74_2':
+            gratuity = rawGratuity;
+            if (contractType === 'indefinite') {
+              lawNote = `تنبيه قوى: اخترت "انتهاء مدة العقد المحددة (المادة 74/2)" مع تحديد نوع العقد كـ "غير محدد المدة". يُحتسب الأجر المعتاد للمكافأة (${yrs.toFixed(2)} سنة)، ويُفضّل مطابقة نوع العقد وسبب الإنهاء في قوى.`;
+            } else {
+              lawNote = `انتهاء مدة العقد المحددة (المادة 74/2 - قوى) [${contractLabel}]: يستحق ${categoryLabel} مكافأة نهاية الخدمة كاملة عن كامل مدة الخدمة دون خصم استقالة أو بدل إشعار ما لم يُتفق على خلاف ذلك.`;
+            }
+            break;
+
+          case 'qiwa_art75':
+            gratuity = rawGratuity;
+            lawNote = `إنهاء العقد غير محدد المدة بإرادة صاحب العمل لسبب مشروع (المادة 75 - قوى) [${contractLabel}]: يستحق ${categoryLabel} مكافأة نهاية الخدمة كاملة مع مراعاة مهلة الإشعار النظامية (${noticeDays} يوماً).`;
+            break;
+
+          case 'qiwa_art77_employer':
+            gratuity = rawGratuity;
+            compensationAmount = customArt77;
+            lawNote = `فسخ العقد من صاحب العمل لسبب غير مشروع (المادة 77 - قوى) [${contractLabel}]: يستحق ${categoryLabel} مكافأة نهاية الخدمة كاملة إضافةً إلى تعويض المادة (77) المدخل (${formatMoney(customArt77, s.law)}).`;
+            break;
+
+          case 'qiwa_art81':
+            gratuity = rawGratuity;
+            lawNote = `ترك العامل العمل لإحدى الحالات الواردة في المادة (81) من نظام العمل (قوى) [${contractLabel}]: يستحق ${categoryLabel} مكافأة نهاية الخدمة كاملة.`;
+            break;
+
+          case 'qiwa_art74_4':
+            gratuity = rawGratuity;
+            lawNote = `بلوغ العامل سن التقاعد (المادة 74/4 - قوى) [${contractLabel}]: يستحق ${categoryLabel} مكافأة نهاية الخدمة كاملة.`;
+            break;
+
+          case 'qiwa_art74_5':
+            gratuity = rawGratuity;
+            lawNote = `القوة القاهرة (المادة 74/5 - قوى) [${contractLabel}]: يستحق ${categoryLabel} مكافأة نهاية الخدمة كاملة.`;
+            break;
+
+          case 'qiwa_art74_6':
+            gratuity = rawGratuity;
+            lawNote = `إغلاق المنشأة نهائياً (المادة 74/6 - قوى) [${contractLabel}]: يستحق ${categoryLabel} مكافأة نهاية الخدمة كاملة.`;
+            break;
+
+          case 'qiwa_art74_7':
+            gratuity = rawGratuity;
+            lawNote = `إنهاء النشاط الذي يعمل فيه العامل (المادة 74/7 - قوى) [${contractLabel}]: يستحق ${categoryLabel} مكافأة نهاية الخدمة كاملة.`;
+            break;
+
+          case 'qiwa_art87':
+            gratuity = rawGratuity;
+            lawNote = `إنهاء العاملة عقد العمل خلال 6 أشهر من الزواج أو 3 أشهر من الوضع (المادة 87 - قوى) [${contractLabel}]: تستحق مكافأة نهاية الخدمة كاملة.`;
+            break;
+
+          case 'qiwa_death_disability':
+            gratuity = rawGratuity;
+            lawNote = `وفاة العامل أو عجزه الكلي عن العمل (المادة 79 - قوى) [${contractLabel}]: تُستحق مكافأة نهاية الخدمة كاملة.`;
+            break;
+
+          case 'qiwa_probation':
+            gratuity = 0;
+            noticeAmount = 0;
+            compensationAmount = 0;
+            lawNote = `إنهاء العقد خلال فترة التجربة (المادة 53 - قوى) [${contractLabel}]: لا يستحق أي من الطرفين مكافأة نهاية خدمة أو تعويضاً.`;
+            break;
+
+          case 'qiwa_art80':
+          case 'gross_misconduct':
+            gratuity = 0;
+            noticeAmount = 0;
+            compensationAmount = 0;
+            lawNote = `فسخ العقد من صاحب العمل لإحدى حالات المادة (80) من نظام العمل (قوى) [${contractLabel}]: لا يستحق العامل مكافأة نهاية خدمة أو بدل إشعار أو تعويضاً.`;
+            break;
+
+          case 'qiwa_art77_employee':
+            gratuity = 0;
+            noticeAmount = 0;
+            compensationAmount = 0;
+            lawNote = `فسخ العقد من العامل لسبب غير مشروع (المادة 77 - قوى) [${contractLabel}]: لا يستحق مكافأة نهاية خدمة، ويُراعى التعويض المستحق لصاحب العمل وفق المادة (77) إن وُجد.`;
+            break;
+
+          case 'qiwa_resignation':
+          case 'resignation':
+            if (yrs < 2) {
+              gratuity = 0;
+              lawNote = `استقالة العامل (المادتان 74/3 و85 - قوى) [${contractLabel} - ${categoryLabel}] ومدة الخدمة أقل من سنتين (${yrs.toFixed(2)} سنة): لا يستحق مكافأة نهاية خدمة.`;
+            } else if (yrs < 5) {
+              gratuity = rawGratuity * (1 / 3);
+              lawNote = `استقالة العامل (المادتان 74/3 و85 - قوى) [${contractLabel} - ${categoryLabel}] ومدة الخدمة من سنتين إلى أقل من 5 سنوات (${yrs.toFixed(2)} سنة): يستحق ثلث (1/3) المكافأة.`;
+            } else if (yrs < 10) {
+              gratuity = rawGratuity * (2 / 3);
+              lawNote = `استقالة العامل (المادتان 74/3 و85 - قوى) [${contractLabel} - ${categoryLabel}] ومدة الخدمة من 5 إلى أقل من 10 سنوات (${yrs.toFixed(2)} سنة): يستحق ثلثي (2/3) المكافأة.`;
+            } else {
+              gratuity = rawGratuity;
+              lawNote = `استقالة العامل (المادتان 74/3 و85 - قوى) [${contractLabel} - ${categoryLabel}] ومدة الخدمة 10 سنوات فأكثر (${yrs.toFixed(2)} سنة): يستحق المكافأة كاملة.`;
+            }
+            break;
+
+          default:
+            gratuity = rawGratuity;
+            lawNote = `إنهاء الخدمة [${contractLabel} - ${categoryLabel}] وفق نظام العمل السعودي ومنصة قوى.`;
+            break;
+        }
+      } else if (s.terminationType === 'gross_misconduct') {
+        gratuity = 0;
+        noticeAmount = 0;
+        compensationAmount = 0;
+        lawNote = 'تم اختيار حالة مخالفة جسيمة/فصل بدون إشعار أو مكافأة؛ يُراعى التحقق القانوني وحصر الحالات حسب القانون المعمول به.';
+      } else {
+        const noticeDays = Math.max(0, Number(s.noticeDays) || 30);
+        if (s.applyNoticePay && noticeDays > 0) {
+          noticeAmount = (settlementBaseWage / 30) * noticeDays;
+        }
+
+        if (s.law === 'jordan') {
+          if (s.socialSecurityCovered && !s.customContractGratuity) {
+            gratuity = 0;
+            lawNote = 'الموظف مشمول بالضمان الاجتماعي الأردني (7.5% موظف / 14.25% منشأة)، لذا لا تُحتسب مكافأة نهاية خدمة إضافية من المنشأة ما لم ينص العقد أو النظام الداخلي على خلاف ذلك.';
+          } else {
+            gratuity = settlementBaseWage * tenure.totalYearsExact;
+            lawNote = s.customContractGratuity
+              ? 'تم تفعيل نص عقدي/نظام داخلي يمنح مكافأة نهاية خدمة إضافية بواقع شهر عن كل سنة خدمة.'
+              : 'الموظف غير مشمول بالضمان الاجتماعي، وتُحتسب مكافأة نهاية الخدمة بواقع أجر شهر عن كل سنة خدمة.';
+          }
+        } else if (s.law === 'palestine') {
+          if (tenure.totalYearsExact < 1) {
+            gratuity = 0;
+            lawNote = 'مدة الخدمة أقل من سنة كاملة؛ وفق قانون العمل الفلسطيني تُستحق مكافأة نهاية الخدمة عن السنوات الكاملة (أجر شهر عن كل سنة).';
+          } else {
+            const fullYears = Math.floor(tenure.totalYearsExact);
+            gratuity = fullYears * settlementBaseWage;
+            lawNote = `احتساب مكافأة نهاية الخدمة وفق قانون العمل الفلسطيني بواقع أجر شهر عن كل سنة خدمة كاملة (${fullYears} سنة).`;
+          }
+        }
+      }
+
+      const grossEntitlements = gratuity + noticeAmount + compensationAmount + leavePayout + unpaidSal;
+      const netSettlement = grossEntitlements - loanBal;
+      const recommendedMonthlyLoanCap = settlementBaseWage * 0.10;
+
+      return {
+        tenure,
+        avgMonthlyCommission,
+        settlementBaseWage,
+        dailyWage,
+        gratuity,
+        noticeAmount,
+        compensationAmount,
+        leavePayout,
+        unpaidSal,
+        loanBal,
+        grossEntitlements,
+        netSettlement,
+        recommendedMonthlyLoanCap,
+        lawNote
+      };
+    }
+
+    const MONTH_NAMES_AR = [
+      'يناير (1)', 'فبراير (2)', 'مارس (3)', 'أبريل (4)',
+      'مايو (5)', 'يونيو (6)', 'يوليو (7)', 'أغسطس (8)',
+      'سبتمبر (9)', 'أكتوبر (10)', 'نوفمبر (11)', 'ديسمبر (12)'
+    ];
+
+    function calculateLeaveSimulation(sim) {
+      const annual = Math.max(0, Number(sim.annualEntitlement) || 0);
+      const taken = Math.max(0, Number(sim.takenDays) || 0);
+      const monthIdx = Math.min(12, Math.max(1, Number(sim.currentMonth) || 1));
+      const dayOfMonth = Math.min(31, Math.max(1, Number(sim.currentDayOfMonth) || 1));
+
+      const monthlyAccrual = annual / 12;
+      const currentMonthFraction = Math.min(1, dayOfMonth / 30);
+      const accruedUpToDate = ((monthIdx - 1) * monthlyAccrual) + (currentMonthFraction * monthlyAccrual);
+      const accruedEndOfSelectedMonth = monthIdx * monthlyAccrual;
+
+      const remainingAsOfDate = accruedUpToDate - taken;
+      const remainingEndOfYear = annual - taken;
+
+      const schedule = [];
+      for (let m = 1; m <= 12; m++) {
+        const cumulativeAccrued = m * monthlyAccrual;
+        const remainingAfterTaken = cumulativeAccrued - taken;
+        schedule.push({
+          month: m,
+          label: MONTH_NAMES_AR[m - 1],
+          monthlyAccrual,
+          cumulativeAccrued,
+          taken,
+          remainingAfterTaken
+        });
+      }
+
+      return {
+        annual,
+        taken,
+        monthIdx,
+        dayOfMonth,
+        monthlyAccrual,
+        accruedUpToDate,
+        accruedEndOfSelectedMonth,
+        remainingAsOfDate,
+        remainingEndOfYear,
+        schedule
+      };
+    }
+
+    function formatMoney(val, lawId) {
+      const num = Number(val) || 0;
+      const code = LAW_PROFILES[lawId]?.currencyCode || 'SAR';
+      return `${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${code}`;
+    }
+
+    function formatDays(val) {
+      const num = Number(val) || 0;
+      return `${num.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} يوم`;
+    }
+
+    // ============================================================================
+    // 4. DAILY 8:30 AM REMINDER ENGINE (WEB NOTIFICATIONS + IN-APP BRIEFING)
+    // ============================================================================
+    function getDueMorningNotes(includeAllActiveForPreview = false) {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const currentHM = `${hh}:${mm}`;
+      const todayStr = now.toISOString().slice(0, 10);
+
+      return state.employees.filter((emp) => {
+        if (!emp.reminderActive || !emp.note || !emp.note.trim()) return false;
+        if (includeAllActiveForPreview) return true;
+        const targetTime = emp.reminderTime || '08:30';
+        return currentHM >= targetTime && emp.lastNotifiedDate !== todayStr;
+      });
+    }
+
+    function triggerBrowserNotification(notesList) {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      try {
+        const bodyText = notesList
+          .slice(0, 4)
+          .map((n) => `• ${n.name} (${LAW_PROFILES[n.law]?.shortName || ''}): ${n.note}`)
+          .join('\n');
+        new Notification('مُخلّص HR — تنبيه الملاحظات الصباحية (08:30 ص)', {
+          body: bodyText || 'لديك ملاحظات موظفين مجدولة لليوم.',
+          dir: 'rtl'
+        });
+      } catch (e) {
+        console.warn('Notification display skipped:', e);
+      }
+    }
+
+    function checkScheduledReminders() {
+      const due = getDueMorningNotes(false);
+      if (due.length > 0) {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        state.employees = state.employees.map((emp) =>
+          due.some((d) => d.id === emp.id) ? { ...emp, lastNotifiedDate: todayStr } : emp
+        );
+        saveState();
+        state.morningAlertOpen = true;
+        state.simulatedAlert = false;
+        triggerBrowserNotification(due);
+        render();
+      }
+    }
+
+    // ============================================================================
+    // 5. CSV / JSON IMPORT & EXPORT HELPERS
+    // ============================================================================
+    function exportWorkspaceJSON() {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        app: 'Mukhallis HR',
+        employees: state.employees,
+        settlement: state.settlement,
+        leaveSim: state.leaveSim
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mukhallis-hr-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportEmployeesCSV() {
+      const headers = ['id', 'name', 'role', 'law', 'department', 'hireDate', 'basicSalary', 'fixedAllowances', 'annualLeaveEntitlement', 'takenLeaveDays', 'reminderTime', 'note'];
+      const rows = state.employees.map((e) =>
+        headers
+          .map((h) => `"${String(e[h] ?? '').replace(/"/g, '""')}"`)
+          .join(',')
+      );
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mukhallis-hr-employees-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function parseImportedData(text) {
+      const trimmed = text.trim();
+      if (!trimmed) throw new Error('النص المدخل فارغ');
+
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        const json = JSON.parse(trimmed);
+        const list = Array.isArray(json) ? json : (Array.isArray(json.employees) ? json.employees : null);
+        if (!list) throw new Error('ملف JSON لا يحتوي على قائمة موظفين صالحة');
+        return {
+          employees: list.map((item, idx) => ({
+            id: item.id || `emp-imp-${Date.now()}-${idx}`,
+            name: String(item.name || `موظف ${idx + 1}`),
+            role: String(item.role || 'موظف'),
+            law: normalizeLawId(item.law),
+            department: String(item.department || 'عام'),
+            hireDate: item.hireDate || '2023-01-01',
+            basicSalary: Number(item.basicSalary) || 0,
+            fixedAllowances: Number(item.fixedAllowances) || 0,
+            annualLeaveEntitlement: Number(item.annualLeaveEntitlement) || 14,
+            takenLeaveDays: Number(item.takenLeaveDays) || 0,
+            note: String(item.note || ''),
+            reminderTime: item.reminderTime || '08:30',
+            reminderActive: item.reminderActive !== undefined ? Boolean(item.reminderActive) : true,
+            lastNotifiedDate: ''
+          })),
+          settlement: json.settlement || null,
+          leaveSim: json.leaveSim || null
+        };
+      }
+
+      const lines = trimmed.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      if (lines.length < 2) throw new Error('ملف CSV يجب أن يحتوي على رأس جدول وصف بيانات واحد على الأقل');
+
+      const splitCSVLine = (line) => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+              current += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (ch === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += ch;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      };
+
+      const headers = splitCSVLine(lines[0]).map((h) => h.replace(/^\uFEFF/, ''));
+      const employees = lines.slice(1).map((line, idx) => {
+        const cols = splitCSVLine(line);
+        const rec = {};
+        headers.forEach((h, i) => {
+          rec[h] = cols[i] ?? '';
+        });
+        return {
+          id: rec.id || `emp-csv-${Date.now()}-${idx}`,
+          name: rec.name || `موظف ${idx + 1}`,
+          role: rec.role || 'موظف',
+          law: normalizeLawId(rec.law),
+          department: rec.department || 'عام',
+          hireDate: rec.hireDate || '2023-01-01',
+          basicSalary: Number(rec.basicSalary) || 0,
+          fixedAllowances: Number(rec.fixedAllowances) || 0,
+          annualLeaveEntitlement: Number(rec.annualLeaveEntitlement) || 14,
+          takenLeaveDays: Number(rec.takenLeaveDays) || 0,
+          note: rec.note || '',
+          reminderTime: rec.reminderTime || '08:30',
+          reminderActive: true,
+          lastNotifiedDate: ''
+        };
+      });
+
+      return { employees, settlement: null, leaveSim: null };
+    }
+
+    // ============================================================================
+    // 6. UI RENDERING COMPONENTS
+    // ============================================================================
+    let statusBannerMessage = null;
+    let importDraftText = '';
+    let newEmployeeForm = {
+      name: '',
+      role: '',
+      law: 'saudi_citizen',
+      department: '',
+      hireDate: new Date().toISOString().slice(0, 10),
+      basicSalary: 6000,
+      fixedAllowances: 1500,
+      annualLeaveEntitlement: 21,
+      takenLeaveDays: 0,
+      note: '',
+      reminderTime: '08:30',
+      reminderActive: true
+    };
+
+    function setStatusBanner(msg, type = 'success') {
+      statusBannerMessage = { text: msg, type };
+      render();
+    }
+
+    function renderTopHeader() {
+      const activeNotesCount = state.employees.filter((e) => e.reminderActive && e.note && e.note.trim()).length;
+      const notifPerm = ('Notification' in window) ? Notification.permission : 'unsupported';
+
+      return `
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 no-print">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div class="flex items-start sm:items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold text-xl shadow-sm shrink-0">
+                  مُخ
+                </div>
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">مُخلّص HR</h1>
+                    <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                      نسخة قوى + محدد / غير محدد المدة
+                    </span>
+                  </div>
+                  <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                    إدارة مستقلة لقوانين العمل (الأردن • السعودية • فلسطين) مع تنبيهات الملاحظات اليومية الساعة 08:30 صباحاً
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onclick="handlePreviewMorningAlert()"
+                  class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition cursor-pointer"
+                >
+                  <span>⏰</span>
+                  <span>تنبيه 8:30 ص (${activeNotesCount})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onclick="handleRequestNotificationPermission()"
+                  class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition cursor-pointer"
+                  title="تفعيل إشعارات المتصفح الساعة 8:30 صباحاً"
+                >
+                  <span>🔔</span>
+                  <span>${notifPerm === 'granted' ? 'الإشعارات مفعّلة' : 'تفعيل الإشعارات'}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Separate Law Switcher -->
+            <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-600">
+                <span>القانون النشط للمرجعية والحسابات:</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:flex sm:flex-wrap sm:items-center" role="tablist" aria-label="اختيار قانون العمل">
+                ${Object.values(LAW_PROFILES).map((law) => {
+                  const selected = state.activeLaw === law.id;
+                  return `
+                    <button
+                      type="button"
+                      onclick="handleSelectLaw('${law.id}')"
+                      class="px-3 py-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer ${
+                        selected
+                          ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }"
+                    >
+                      <span class="w-2.5 h-2.5 rounded-full ${selected ? 'bg-white' : law.dotClass}"></span>
+                      <span>${law.name}</span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- Main Navigation Tabs -->
+            <nav class="mt-3 flex gap-1.5 overflow-x-auto pb-1" aria-label="أقسام المنصة">
+              ${[
+                { id: 'settlement', label: '1. حاسبة المخالصات المالية', icon: '💼' },
+                { id: 'leaves', label: '2. حاسبة الإجازات الشهرية', icon: '📅' },
+                { id: 'employees', label: '3. الموظفون وتنبيه 8:30 ص', icon: '👥' },
+                { id: 'laws', label: '4. مرجع القوانين المنفصلة', icon: '⚖️' },
+                { id: 'io', label: '5. تحميل وتصدير البيانات', icon: '📥' }
+              ].map((tab) => {
+                const isActive = state.activeTab === tab.id;
+                return `
+                  <button
+                    type="button"
+                    onclick="handleSelectTab('${tab.id}')"
+                    class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap transition cursor-pointer ${
+                      isActive
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }"
+                  >
+                    <span class="ml-1">${tab.icon}</span>
+                    <span>${tab.label}</span>
+                  </button>
+                `;
+              }).join('')}
+            </nav>
+          </div>
+        </header>
+      `;
+    }
+
+    function renderLawBannerForTab(lawId, contractType = null) {
+      const law = LAW_PROFILES[lawId];
+      const isSaudi = lawId === 'saudi_citizen' || lawId === 'saudi_expat';
+      const contractBadge = isSaudi && contractType
+        ? `<span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-slate-900 text-white">
+             ${contractType === 'fixed_term' ? 'عقد محدد المدة' : 'عقد غير محدد المدة'}
+           </span>`
+        : '';
+
+      return `
+        <div class="rounded-2xl border p-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${law.badgeClass}">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wide opacity-80">إطار العمل القانوني المنفصل</span>
+              ${contractBadge}
+            </div>
+            <div class="text-base sm:text-lg font-extrabold mt-0.5">${law.name} — ${law.subtitle}</div>
+          </div>
+          <div class="text-xs font-bold px-3 py-1.5 rounded-lg bg-white/80 text-slate-800 border border-black/10 self-start sm:self-center shrink-0">
+            العملة المرجعية: ${law.currency}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSettlementTab() {
+      const s = state.settlement;
+      const calc = calculateSettlement(s);
+      const law = LAW_PROFILES[s.law];
+      const isSaudiLaw = s.law === 'saudi_citizen' || s.law === 'saudi_expat';
+
+      const terminationOptionsHtml = isSaudiLaw
+        ? `
+          <optgroup label="أسباب انتهاء العقد في منصة قوى (Qiwa)">
+            <option value="qiwa_art74_1" ${s.terminationType === 'qiwa_art74_1' ? 'selected' : ''}>اتفاق الطرفين على إنهاء العقد (المادة 74/1)</option>
+            <option value="qiwa_art74_2" ${s.terminationType === 'qiwa_art74_2' ? 'selected' : ''}>انتهاء مدة العقد المحددة (المادة 74/2)</option>
+            <option value="qiwa_resignation" ${(s.terminationType === 'qiwa_resignation' || s.terminationType === 'resignation') ? 'selected' : ''}>استقالة العامل (المادتان 74/3 و 85)</option>
+            <option value="qiwa_art75" ${(s.terminationType === 'qiwa_art75' || s.terminationType === 'termination_without_cause') ? 'selected' : ''}>إنهاء العقد غير محدد المدة بإرادة صاحب العمل (المادة 75)</option>
+            <option value="qiwa_art77_employer" ${s.terminationType === 'qiwa_art77_employer' ? 'selected' : ''}>فسخ العقد من صاحب العمل لسبب غير مشروع (المادة 77)</option>
+            <option value="qiwa_art77_employee" ${s.terminationType === 'qiwa_art77_employee' ? 'selected' : ''}>فسخ العقد من العامل لسبب غير مشروع (المادة 77)</option>
+            <option value="qiwa_art80" ${(s.terminationType === 'qiwa_art80' || s.terminationType === 'gross_misconduct') ? 'selected' : ''}>فسخ العقد من صاحب العمل لإحدى حالات المادة (80)</option>
+            <option value="qiwa_art81" ${s.terminationType === 'qiwa_art81' ? 'selected' : ''}>ترك العامل العمل لإحدى حالات المادة (81)</option>
+            <option value="qiwa_probation" ${s.terminationType === 'qiwa_probation' ? 'selected' : ''}>إنهاء العقد خلال فترة التجربة (المادة 53)</option>
+            <option value="qiwa_art74_4" ${s.terminationType === 'qiwa_art74_4' ? 'selected' : ''}>بلوغ العامل سن التقاعد (المادة 74/4)</option>
+            <option value="qiwa_art74_5" ${s.terminationType === 'qiwa_art74_5' ? 'selected' : ''}>القوة القاهرة (المادة 74/5)</option>
+            <option value="qiwa_art74_6" ${s.terminationType === 'qiwa_art74_6' ? 'selected' : ''}>إغلاق المنشأة نهائياً (المادة 74/6)</option>
+            <option value="qiwa_art74_7" ${s.terminationType === 'qiwa_art74_7' ? 'selected' : ''}>إنهاء النشاط الذي يعمل فيه العامل (المادة 74/7)</option>
+            <option value="qiwa_art87" ${s.terminationType === 'qiwa_art87' ? 'selected' : ''}>إنهاء العاملة عقدها بسبب الزواج أو الوضع (المادة 87)</option>
+            <option value="qiwa_death_disability" ${s.terminationType === 'qiwa_death_disability' ? 'selected' : ''}>وفاة العامل أو عجزه الكلي (المادة 79)</option>
+          </optgroup>
+        `
+        : `
+          <option value="termination_without_cause" ${s.terminationType === 'termination_without_cause' ? 'selected' : ''}>إنهاء خدمة من صاحب العمل / انتهاء عقد</option>
+          <option value="resignation" ${s.terminationType === 'resignation' ? 'selected' : ''}>استقالة الموظف</option>
+          <option value="gross_misconduct" ${s.terminationType === 'gross_misconduct' ? 'selected' : ''}>فصل تأديبي / مخالفة جسيمة (بدون مكافأة)</option>
+        `;
+
+      return `
+        <section>
+          ${renderLawBannerForTab(s.law, isSaudiLaw ? s.saudiContractType : null)}
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Input Form -->
+            <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5 no-print">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 class="text-lg font-extrabold text-slate-900">بيانات حساب المخالصة المالية</h2>
+                <button
+                  type="button"
+                  onclick="handleResetSettlement()"
+                  class="text-xs font-bold text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                >
+                  إعادة ضبط القيم
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">اسم الموظف</label>
+                  <input
+                    type="text"
+                    value="${escapeAttr(s.employeeName)}"
+                    oninput="updateSettlementField('employeeName', this.value)"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    placeholder="مثال: سامي المنصور"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">القانون المطبق على المخالصة</label>
+                  <select
+                    onchange="updateSettlementField('law', this.value)"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    <option value="saudi_citizen" ${s.law === 'saudi_citizen' ? 'selected' : ''}>نظام العمل السعودي — للسعوديين</option>
+                    <option value="saudi_expat" ${s.law === 'saudi_expat' ? 'selected' : ''}>نظام العمل السعودي — للأجانب</option>
+                    <option value="jordan" ${s.law === 'jordan' ? 'selected' : ''}>القانون الأردني</option>
+                    <option value="palestine" ${s.law === 'palestine' ? 'selected' : ''}>قانون العمل الفلسطيني</option>
+                  </select>
+                </div>
+
+                ${isSaudiLaw ? `
+                  <div class="sm:col-span-2 bg-blue-50/70 border border-blue-200 rounded-xl p-3.5">
+                    <label class="block text-xs font-extrabold text-blue-950 mb-2">
+                      نوع عقد العمل في النظام السعودي (قوى)
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <button
+                        type="button"
+                        onclick="updateSettlementField('saudiContractType', 'fixed_term')"
+                        class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition flex items-center justify-between cursor-pointer ${
+                          s.saudiContractType === 'fixed_term'
+                            ? 'bg-brand-600 text-white border-brand-600 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                        }"
+                      >
+                        <span>عقد محدد المدة</span>
+                        <span class="text-[11px] opacity-85">م. 74/2 • م. 85</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onclick="updateSettlementField('saudiContractType', 'indefinite')"
+                        class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition flex items-center justify-between cursor-pointer ${
+                          s.saudiContractType === 'indefinite'
+                            ? 'bg-brand-600 text-white border-brand-600 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                        }"
+                      >
+                        <span>عقد غير محدد المدة</span>
+                        <span class="text-[11px] opacity-85">م. 75 • إشعار</span>
+                      </button>
+                    </div>
+                  </div>
+                ` : ''}
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ المباشرة</label>
+                  <input
+                    type="date"
+                    value="${escapeAttr(s.hireDate)}"
+                    oninput="updateSettlementField('hireDate', this.value)"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ انتهاء الخدمة</label>
+                  <input
+                    type="date"
+                    value="${escapeAttr(s.endDate)}"
+                    oninput="updateSettlementField('endDate', this.value)"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                    ${isSaudiLaw ? 'سبب إنهاء العقد (وفق منصة قوى الحكومية)' : 'سبب / طبيعة إنهاء الخدمة'}
+                  </label>
+                  <select
+                    onchange="updateSettlementField('terminationType', this.value)"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    ${terminationOptionsHtml}
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">الراتب الأساسي الشهري (${law.currencyCode})</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${s.basicSalary}"
+                    oninput="updateSettlementField('basicSalary', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">العلاوات الثابتة / السكن (${law.currencyCode})</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${s.fixedAllowances}"
+                    oninput="updateSettlementField('fixedAllowances', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">بدلات مستثناة (تنقل فعلي / هاتف)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${s.excludedAllowances}"
+                    oninput="updateSettlementField('excludedAllowances', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">إجمالي العمولات خلال آخر 12 شهراً</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${s.twelveMonthCommissionsTotal}"
+                    oninput="updateSettlementField('twelveMonthCommissionsTotal', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                  <p class="text-[11px] text-slate-500 mt-1 tabular-nums">
+                    متوسط العمولة الشهري المحتسب: <strong id="settlement-avg-commission">${formatMoney(calc.avgMonthlyCommission, s.law)}</strong>
+                  </p>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">رصيد الإجازات السنوية المتبقية (أيام)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value="${s.remainingLeaveDays}"
+                    oninput="updateSettlementField('remainingLeaveDays', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">رواتب / مستحقات غير مدفوعة</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${s.unpaidSalary}"
+                    oninput="updateSettlementField('unpaidSalary', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">رصيد سلف / قروض مستحقة للخصم</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="${s.loanBalance}"
+                    oninput="updateSettlementField('loanBalance', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                  <p class="text-[11px] text-slate-500 mt-1 tabular-nums">
+                    الحد الأقصى للخصم الشهري من الراتب (10%): <strong id="settlement-loan-cap">${formatMoney(calc.recommendedMonthlyLoanCap, s.law)}</strong>
+                  </p>
+                </div>
+
+                ${isSaudiLaw && s.terminationType === 'qiwa_art77_employer' ? `
+                  <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">مبلغ تعويض فسخ العقد غير المشروع — المادة (77) (${law.currencyCode})</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value="${s.art77CompensationAmount}"
+                      oninput="updateSettlementField('art77CompensationAmount', Number(this.value))"
+                      class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    />
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="pt-3 border-t border-slate-100 flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <label class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      ${s.applyNoticePay ? 'checked' : ''}
+                      onchange="updateSettlementField('applyNoticePay', this.checked)"
+                      class="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                    />
+                    <span>احتساب بدل فترة الإشعار</span>
+                  </label>
+
+                  <div class="flex items-center gap-2">
+                    <label class="text-xs font-bold text-slate-600">مدة الإشعار (أيام):</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="180"
+                      value="${s.noticeDays}"
+                      oninput="updateSettlementField('noticeDays', Number(this.value))"
+                      class="w-24 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-bold tabular-nums"
+                    />
+                  </div>
+                </div>
+
+                ${s.law === 'jordan' ? `
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <label class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        ${s.socialSecurityCovered ? 'checked' : ''}
+                        onchange="updateSettlementField('socialSecurityCovered', this.checked)"
+                        class="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                      />
+                      <span>مشمول بالضمان الاجتماعي الأردني</span>
+                    </label>
+
+                    <label class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        ${s.customContractGratuity ? 'checked' : ''}
+                        onchange="updateSettlementField('customContractGratuity', this.checked)"
+                        class="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                      />
+                      <span>نص عقدي/داخلي بمكافأة إضافية</span>
+                    </label>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Output Summary Card -->
+            <div id="settlement-summary-panel" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4 print-card">
+              ${renderSettlementSummaryInner(s, calc, law)}
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderLeavesExampleInner(res) {
+      return `
+        <div class="font-bold text-slate-800">مثال سريع مطبق تلقائياً:</div>
+        <p>
+          إذا كان الرصيد السنوي <strong>${res.annual}</strong> يوماً، وأخذ الموظف <strong>${res.taken}</strong> يوماً، ونحن في اليوم <strong>${res.dayOfMonth}</strong> من الشهر رقم <strong>${res.monthIdx}</strong>:
+        </p>
+        <p class="tabular-nums">
+          الاستحقاق الشهري = <strong>${res.monthlyAccrual.toFixed(2)}</strong> يوم/شهر • المستحق حتى هذا التاريخ = <strong>${res.accruedUpToDate.toFixed(2)}</strong> يوم.
+        </p>
+      `;
+    }
+
+    function renderSettlementSummaryInner(s, calc, law) {
+      const isSaudiLaw = s.law === 'saudi_citizen' || s.law === 'saudi_expat';
+      return `
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <span class="text-xs font-bold text-brand-600">${law.name}</span>
+            <h3 class="text-lg font-extrabold text-slate-900">ملخص المخالصة النهائية</h3>
+          </div>
+          <button
+            type="button"
+            onclick="window.print()"
+            class="no-print px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+          >
+            🖨️ طباعة
+          </button>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 space-y-1.5 text-xs sm:text-sm">
+          <div class="flex justify-between">
+            <span class="text-slate-600">الموظف:</span>
+            <span class="font-bold text-slate-900">${escapeHtml(s.employeeName || 'غير محدد')}</span>
+          </div>
+          ${isSaudiLaw ? `
+            <div class="flex justify-between">
+              <span class="text-slate-600">نوع العقد في قوى:</span>
+              <span class="font-bold text-slate-900">${s.saudiContractType === 'fixed_term' ? 'عقد محدد المدة' : 'عقد غير محدد المدة'}</span>
+            </div>
+          ` : ''}
+          <div class="flex justify-between">
+            <span class="text-slate-600">مدة الخدمة الفعلية:</span>
+            <span class="font-bold text-slate-900 tabular-nums">
+              ${calc.tenure.years} سنة و ${calc.tenure.months} شهر و ${calc.tenure.days} يوم (${calc.tenure.totalYearsExact.toFixed(2)} سنة)
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-600">الأجر الشهري المعتمد للتسوية:</span>
+            <span class="font-bold text-brand-700 tabular-nums">${formatMoney(calc.settlementBaseWage, s.law)}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-600">أجر اليوم الواحد (÷ 30):</span>
+            <span class="font-bold text-slate-900 tabular-nums">${formatMoney(calc.dailyWage, s.law)}</span>
+          </div>
+        </div>
+
+        <div class="space-y-2.5 text-sm">
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+            <span class="text-slate-600">مكافأة نهاية الخدمة:</span>
+            <span class="font-bold text-slate-900 tabular-nums">${formatMoney(calc.gratuity, s.law)}</span>
+          </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+            <span class="text-slate-600">بدل فترة الإشعار (${s.applyNoticePay ? `${s.noticeDays} يوم` : 'غير مفعّل'}):</span>
+            <span class="font-bold text-slate-900 tabular-nums">${formatMoney(calc.noticeAmount, s.law)}</span>
+          </div>
+          ${calc.compensationAmount > 0 ? `
+            <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+              <span class="text-slate-600">تعويض فسخ العقد (المادة 77):</span>
+              <span class="font-bold text-slate-900 tabular-nums">${formatMoney(calc.compensationAmount, s.law)}</span>
+            </div>
+          ` : ''}
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+            <span class="text-slate-600">بدل الإجازات المتبقية (${formatDays(s.remainingLeaveDays)}):</span>
+            <span class="font-bold text-slate-900 tabular-nums">${formatMoney(calc.leavePayout, s.law)}</span>
+          </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+            <span class="text-slate-600">مستحقات / رواتب غير مدفوعة:</span>
+            <span class="font-bold text-slate-900 tabular-nums">${formatMoney(calc.unpaidSal, s.law)}</span>
+          </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-100 text-rose-700">
+            <span>خصم السلف / القروض:</span>
+            <span class="font-bold tabular-nums">- ${formatMoney(calc.loanBal, s.law)}</span>
+          </div>
+        </div>
+
+        <div class="rounded-2xl p-4 ${calc.netSettlement >= 0 ? 'bg-brand-600 text-white' : 'bg-rose-600 text-white'}">
+          <div class="text-xs font-semibold opacity-90">صافي المخالصة المالية المستحقة</div>
+          <div class="text-2xl font-extrabold mt-1 tabular-nums">${formatMoney(calc.netSettlement, s.law)}</div>
+        </div>
+
+        <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900 leading-relaxed">
+          <strong>تنويه قانوني (${law.shortName}):</strong> ${calc.lawNote}
+        </div>
+      `;
+    }
+
+    function refreshSettlementSummaryOnly() {
+      const panel = document.getElementById('settlement-summary-panel');
+      if (!panel) {
+        render();
+        return;
+      }
+      const s = state.settlement;
+      const calc = calculateSettlement(s);
+      const law = LAW_PROFILES[s.law];
+      panel.innerHTML = renderSettlementSummaryInner(s, calc, law);
+
+      const commHint = document.getElementById('settlement-avg-commission');
+      if (commHint) commHint.textContent = formatMoney(calc.avgMonthlyCommission, s.law);
+
+      const loanHint = document.getElementById('settlement-loan-cap');
+      if (loanHint) loanHint.textContent = formatMoney(calc.recommendedMonthlyLoanCap, s.law);
+    }
+
+    function renderLeavesTab() {
+      const sim = state.leaveSim;
+      const res = calculateLeaveSimulation(sim);
+
+      return `
+        <section>
+          ${renderLawBannerForTab(sim.law)}
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+              <h2 class="text-lg font-extrabold text-slate-900 border-b border-slate-100 pb-3">
+                محاكاة استحقاق ورصيد الإجازات الشهري
+              </h2>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">القانون المرجعي للإجازة</label>
+                <select
+                  onchange="handleLeaveLawChange(this.value)"
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                >
+                  <option value="saudi_citizen" ${sim.law === 'saudi_citizen' ? 'selected' : ''}>نظام العمل السعودي — للسعوديين (21 يوم / 30 يوم)</option>
+                  <option value="saudi_expat" ${sim.law === 'saudi_expat' ? 'selected' : ''}>نظام العمل السعودي — للأجانب (21 يوم / 30 يوم)</option>
+                  <option value="jordan" ${sim.law === 'jordan' ? 'selected' : ''}>القانون الأردني (14 يوم / 21 يوم بعد 5 سنوات)</option>
+                  <option value="palestine" ${sim.law === 'palestine' ? 'selected' : ''}>قانون العمل الفلسطيني (14 يوم فأكثر حسب الخدمة)</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">الرصيد السنوي الكامل (أيام)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value="${sim.annualEntitlement}"
+                    oninput="updateLeaveField('annualEntitlement', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">الأيام المأخوذة حتى الآن</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value="${sim.takenDays}"
+                    oninput="updateLeaveField('takenDays', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">الشهر المرجعي (1 - 12)</label>
+                  <select
+                    onchange="updateLeaveField('currentMonth', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    ${MONTH_NAMES_AR.map((mName, idx) => `
+                      <option value="${idx + 1}" ${sim.currentMonth === idx + 1 ? 'selected' : ''}>${mName}</option>
+                    `).join('')}
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">يوم الشهر المرجعي (مثلاً يوم 7)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    value="${sim.currentDayOfMonth}"
+                    oninput="updateLeaveField('currentDayOfMonth', Number(this.value))"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+
+              <div id="leaves-example-box" class="rounded-xl bg-slate-50 border border-slate-200 p-3.5 text-xs text-slate-600 space-y-1">
+                ${renderLeavesExampleInner(res)}
+              </div>
+            </div>
+
+            <div id="leaves-summary-panel" class="lg:col-span-7 space-y-5">
+              ${renderLeavesSummaryInner(res)}
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderLeavesSummaryInner(res) {
+      return `
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-xs font-bold text-slate-500">المستحق حتى يوم ${res.dayOfMonth} (شهر ${res.monthIdx})</div>
+            <div class="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">${formatDays(res.accruedUpToDate)}</div>
+            <div class="text-[11px] text-slate-500 mt-1 tabular-nums">معدل شهري: ${res.monthlyAccrual.toFixed(2)} يوم</div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-xs font-bold text-slate-500">المتبقي الفعلي حتى اليوم ${res.dayOfMonth}</div>
+            <div class="text-2xl font-extrabold mt-1 tabular-nums ${res.remainingAsOfDate >= 0 ? 'text-emerald-700' : 'text-rose-700'}">
+              ${formatDays(res.remainingAsOfDate)}
+            </div>
+            <div class="text-[11px] text-slate-500 mt-1 tabular-nums">بعد خصم ${res.taken} يوم مأخوذ</div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-xs font-bold text-slate-500">المتبقي من كامل الرصيد السنوي</div>
+            <div class="text-2xl font-extrabold text-brand-700 mt-1 tabular-nums">${formatDays(res.remainingEndOfYear)}</div>
+            <div class="text-[11px] text-slate-500 mt-1 tabular-nums">من أصل ${res.annual} يوم سنوياً</div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <h3 class="text-base font-extrabold text-slate-900 mb-3">جدول الاستحقاق والمتبقي شهراً بشهر (يناير – ديسمبر)</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs sm:text-sm text-right border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-50 text-slate-700">
+                  <th class="py-2.5 px-3 font-bold">الشهر</th>
+                  <th class="py-2.5 px-3 font-bold">الرصيد التراكمي المستحق</th>
+                  <th class="py-2.5 px-3 font-bold">المأخوذ</th>
+                  <th class="py-2.5 px-3 font-bold">الصافي المتبقي نهاية الشهر</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 tabular-nums">
+                ${res.schedule.map((row) => {
+                  const isSelectedMonth = row.month === res.monthIdx;
+                  return `
+                    <tr class="${isSelectedMonth ? 'bg-brand-50/70 font-bold' : ''}">
+                      <td class="py-2 px-3">${row.label}</td>
+                      <td class="py-2 px-3">${row.cumulativeAccrued.toFixed(2)} يوم</td>
+                      <td class="py-2 px-3 text-slate-600">${row.taken.toFixed(2)} يوم</td>
+                      <td class="py-2 px-3 ${row.remainingAfterTaken >= 0 ? 'text-emerald-700' : 'text-rose-700'}">
+                        ${row.remainingAfterTaken.toFixed(2)} يوم
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function refreshLeavesSummaryOnly() {
+      const panel = document.getElementById('leaves-summary-panel');
+      if (!panel) {
+        render();
+        return;
+      }
+      const res = calculateLeaveSimulation(state.leaveSim);
+      panel.innerHTML = renderLeavesSummaryInner(res);
+      const exBox = document.getElementById('leaves-example-box');
+      if (exBox) exBox.innerHTML = renderLeavesExampleInner(res);
+    }
+
+    function renderEmployeesTab() {
+      const filteredLaw = state.activeLaw;
+
+      return `
+        <section class="space-y-6">
+          ${renderLawBannerForTab(filteredLaw)}
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-3 mb-4">
+              <div>
+                <h2 class="text-lg font-extrabold text-slate-900">إضافة موظف وملاحظة تنبيه الساعة 08:30 صباحاً</h2>
+                <p class="text-xs text-slate-500">سيصلك تنبيه يومي تلقائياً الساعة 08:30 صباحاً بالملاحظات النشطة للموظفين</p>
+              </div>
+              <button
+                type="button"
+                onclick="handlePreviewMorningAlert()"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 hover:bg-amber-200 transition cursor-pointer self-start"
+              >
+                محاكاة تنبيه 8:30 صباحاً الآن
+              </button>
+            </div>
+
+            <form onsubmit="handleAddEmployee(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">اسم الموظف *</label>
+                <input
+                  type="text"
+                  required
+                  value="${escapeAttr(newEmployeeForm.name)}"
+                  oninput="newEmployeeForm.name = this.value"
+                  placeholder="الاسم الكامل"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">المسمى الوظيفي</label>
+                <input
+                  type="text"
+                  value="${escapeAttr(newEmployeeForm.role)}"
+                  oninput="newEmployeeForm.role = this.value"
+                  placeholder="مثال: محاسب / HR"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">القانون التابع له</label>
+                <select
+                  onchange="newEmployeeForm.law = this.value"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold bg-white"
+                >
+                  <option value="saudi_citizen" ${newEmployeeForm.law === 'saudi_citizen' ? 'selected' : ''}>نظام العمل السعودي — للسعوديين</option>
+                  <option value="saudi_expat" ${newEmployeeForm.law === 'saudi_expat' ? 'selected' : ''}>نظام العمل السعودي — للأجانب</option>
+                  <option value="jordan" ${newEmployeeForm.law === 'jordan' ? 'selected' : ''}>القانون الأردني</option>
+                  <option value="palestine" ${newEmployeeForm.law === 'palestine' ? 'selected' : ''}>قانون العمل الفلسطيني</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ المباشرة</label>
+                <input
+                  type="date"
+                  value="${escapeAttr(newEmployeeForm.hireDate)}"
+                  oninput="newEmployeeForm.hireDate = this.value"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm tabular-nums"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">الراتب الأساسي</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value="${newEmployeeForm.basicSalary}"
+                  oninput="newEmployeeForm.basicSalary = Number(this.value)"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm tabular-nums"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">العلاوات الثابتة</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value="${newEmployeeForm.fixedAllowances}"
+                  oninput="newEmployeeForm.fixedAllowances = Number(this.value)"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm tabular-nums"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">الرصيد السنوي للإجازات</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value="${newEmployeeForm.annualLeaveEntitlement}"
+                  oninput="newEmployeeForm.annualLeaveEntitlement = Number(this.value)"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm tabular-nums"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">وقت التذكير اليومي</label>
+                <input
+                  type="time"
+                  value="${escapeAttr(newEmployeeForm.reminderTime)}"
+                  oninput="newEmployeeForm.reminderTime = this.value"
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm tabular-nums"
+                />
+              </div>
+
+              <div class="sm:col-span-2 lg:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظة المتابعة اليومية (تظهر الساعة 8:30 صباحاً)</label>
+                <input
+                  type="text"
+                  value="${escapeAttr(newEmployeeForm.note)}"
+                  oninput="newEmployeeForm.note = this.value"
+                  placeholder="اكتب ملاحظة للموظف ليصلك تنبيه بها صباح اليوم التالي الساعة 8:30..."
+                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div class="flex items-end">
+                <button
+                  type="submit"
+                  class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold transition cursor-pointer"
+                >
+                  + إضافة الموظف
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+              <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
+                سجل الموظفين والملاحظات اليومية (${state.employees.length})
+              </h3>
+              <span class="text-xs text-slate-500">يمكنك تعديل الملاحظة أو تحميل أي موظف مباشرة إلى حاسبة المخالصة</span>
+            </div>
+
+            <div class="space-y-4">
+              ${state.employees.length === 0 ? `
+                <div class="text-center py-8 text-slate-500 text-sm">لا يوجد موظفون مسجلون حالياً. أضف موظفاً أو استورد ملفاً من قسم البيانات.</div>
+              ` : state.employees.map((emp) => {
+                const empLaw = LAW_PROFILES[emp.law] || LAW_PROFILES.jordan;
+                const tenure = calculateTenure(emp.hireDate, new Date().toISOString().slice(0, 10));
+                const leaveLeft = (Number(emp.annualLeaveEntitlement) || 0) - (Number(emp.takenLeaveDays) || 0);
+
+                return `
+                  <div class="rounded-2xl border border-slate-200 p-4 hover:border-slate-300 transition space-y-3">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                      <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="text-base font-extrabold text-slate-900">${escapeHtml(emp.name)}</span>
+                          <span class="text-xs font-bold px-2.5 py-0.5 rounded-full border ${empLaw.badgeClass}">${empLaw.shortName}</span>
+                          <span class="text-xs text-slate-500">${escapeHtml(emp.role || 'موظف')}</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1 tabular-nums">
+                          الأساسي: <strong>${formatMoney(emp.basicSalary, emp.law)}</strong> •
+                          العلاوات الثابتة: <strong>${formatMoney(emp.fixedAllowances, emp.law)}</strong> •
+                          الخدمة: <strong>${tenure.years} سنة و ${tenure.months} شهر</strong> •
+                          متبقي الإجازة: <strong>${leaveLeft} يوم</strong>
+                        </div>
+                      </div>
+
+                      <div class="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onclick="loadEmployeeIntoSettlement('${emp.id}')"
+                          class="px-3 py-1.5 rounded-lg text-xs font-bold bg-brand-50 text-brand-700 hover:bg-brand-100 transition cursor-pointer"
+                        >
+                          حساب مخالصة
+                        </button>
+                        <button
+                          type="button"
+                          onclick="deleteEmployee('${emp.id}')"
+                          class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                        >
+                          حذف
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-center pt-2 border-t border-slate-100">
+                      <div class="md:col-span-7">
+                        <input
+                          type="text"
+                          value="${escapeAttr(emp.note || '')}"
+                          oninput="updateEmployeeNote('${emp.id}', this.value)"
+                          placeholder="اكتب ملاحظة لهذا الموظف للتذكير الساعة 8:30 صباحاً..."
+                          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs sm:text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        />
+                      </div>
+                      <div class="md:col-span-2">
+                        <input
+                          type="time"
+                          value="${escapeAttr(emp.reminderTime || '08:30')}"
+                          onchange="updateEmployeeReminderTime('${emp.id}', this.value)"
+                          class="w-full rounded-xl border border-slate-200 px-2.5 py-2 text-xs tabular-nums"
+                        />
+                      </div>
+                      <div class="md:col-span-3 flex items-center justify-between md:justify-end gap-2">
+                        <label class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            ${emp.reminderActive ? 'checked' : ''}
+                            onchange="toggleEmployeeReminder('${emp.id}', this.checked)"
+                            class="rounded border-slate-300 text-brand-600"
+                          />
+                          <span>تذكير يومي (08:30)</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderLawsTab() {
+      return `
+        <section class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            ${Object.values(LAW_PROFILES).map((law) => {
+              const isSelected = law.id === state.activeLaw;
+              return `
+                <div class="bg-white rounded-2xl border ${isSelected ? 'border-brand-500 ring-2 ring-brand-100' : 'border-slate-200'} p-5 sm:p-6 shadow-sm flex flex-col justify-between space-y-4">
+                  <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="text-xs font-extrabold px-2.5 py-1 rounded-full border ${law.badgeClass}">${law.shortName}</span>
+                      <button
+                        type="button"
+                        onclick="handleSelectLaw('${law.id}')"
+                        class="text-xs font-bold text-brand-600 hover:underline cursor-pointer"
+                      >
+                        اعتماد كقانون نشط
+                      </button>
+                    </div>
+                    <h2 class="text-lg font-extrabold text-slate-900">${law.name}</h2>
+                    <p class="text-xs text-slate-500">${law.subtitle}</p>
+
+                    <div class="space-y-3 pt-2 border-t border-slate-100">
+                      ${law.rules.map((r) => `
+                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                          <div class="text-xs font-extrabold text-slate-800 mb-1">${r.title}</div>
+                          <p class="text-xs text-slate-600 leading-relaxed">${r.text}</p>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+
+                  <div class="pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between tabular-nums">
+                    <span>الإجازة السنوية: ${law.annualLeaveUnder5} / ${law.annualLeaveOver5} يوم</span>
+                    <span>العملة: ${law.currencyCode}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs sm:text-sm text-amber-950">
+            <strong>ملاحظة مرجعية لفرق HR:</strong> يفصل التطبيق حسابات ومعايير الأردن، ونظام العمل السعودي للسعوديين مقابل الأجانب (مع خيار عقد محدد أو غير محدد المدة)، وفلسطين بشكل مستقل؛ يُنصح دائماً بمراجعة اللوائح الداخلية المعتمدة وعقود العمل الفردية في الحالات التعاقدية الخاصة.
+          </div>
+        </section>
+      `;
+    }
+
+    function renderDataIOTab() {
+      return `
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+            <h2 class="text-lg font-extrabold text-slate-900 border-b border-slate-100 pb-3">تصدير وتحميل البيانات</h2>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              احفظ نسخة احتياطية كاملة من بيانات الموظفين والملاحظات والحسابات بصيغة JSON، أو صدّر قائمة الموظفين بصيغة CSV لفتحها في Excel.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                type="button"
+                onclick="exportWorkspaceJSON()"
+                class="flex-1 py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-bold transition cursor-pointer"
+              >
+                ⬇️ تصدير نسخة JSON كاملة
+              </button>
+              <button
+                type="button"
+                onclick="exportEmployeesCSV()"
+                class="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-bold transition cursor-pointer"
+              >
+                📊 تصدير الموظفين CSV
+              </button>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100">
+              <label class="block text-xs font-bold text-slate-700 mb-2">رفع ملف JSON أو CSV من جهازك</label>
+              <input
+                type="file"
+                accept=".json,.csv,text/csv,application/json"
+                onchange="handleFileUpload(event)"
+                class="block w-full text-xs text-slate-600 file:ml-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-extrabold text-slate-900">استيراد ولصق بيانات (JSON / CSV)</h2>
+              <button
+                type="button"
+                onclick="fillSampleImportText()"
+                class="text-xs font-bold text-brand-600 hover:underline cursor-pointer"
+              >
+                إدراج نموذج CSV جاهز
+              </button>
+            </div>
+
+            <textarea
+              rows="8"
+              oninput="importDraftText = this.value"
+              placeholder='الصق هنا بيانات JSON أو CSV مثل:
+name,role,law,basicSalary,fixedAllowances,annualLeaveEntitlement,takenLeaveDays,note
+رنا منصور,أخصائية موارد بشرية,jordan,600,100,14,4,مراجعة عقود العمل'
+              class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >${escapeHtml(importDraftText)}</textarea>
+
+            <div class="flex justify-end">
+              <button
+                type="button"
+                onclick="handleApplyPastedImport()"
+                class="py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold transition cursor-pointer"
+              >
+                ✓ اعتماد وتحميل البيانات إلى المنصة
+              </button>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderMorningReminderModal() {
+      if (!state.morningAlertOpen) return '';
+      const notes = getDueMorningNotes(true);
+
+      return `
+        <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+          <div class="bg-white rounded-2xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg font-bold">⏰</span>
+                <div>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900">إيجاز الملاحظات الصباحية — 08:30 صباحاً</h3>
+                  <p class="text-xs text-slate-500">تذكير يومي بملاحظات الموظفين المسجلة في المنصة</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onclick="closeMorningAlert()"
+                class="text-slate-400 hover:text-slate-700 text-lg font-bold px-2 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div class="max-h-72 overflow-y-auto space-y-2.5">
+              ${notes.length === 0 ? `
+                <div class="text-sm text-slate-500 text-center py-6">لا توجد ملاحظات تذكير نشطة حالياً. أضف ملاحظة لأي موظف من تبويب الموظفين.</div>
+              ` : notes.map((emp) => {
+                const empLaw = LAW_PROFILES[emp.law] || LAW_PROFILES.jordan;
+                return `
+                  <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-3 space-y-1">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-extrabold text-slate-900">${escapeHtml(emp.name)}</span>
+                      <span class="font-bold px-2 py-0.5 rounded-full border ${empLaw.badgeClass}">${empLaw.shortName} • ${escapeHtml(emp.reminderTime || '08:30')}</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">${escapeHtml(emp.note)}</p>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onclick="closeMorningAlert()"
+                class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-bold cursor-pointer"
+              >
+                تم الاطلاع
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/'/g, '&#39;');
+    }
+
+    function render() {
+      const root = document.getElementById('app');
+      if (!root) return;
+
+      const activeEl = document.activeElement;
+      let focusState = null;
+      if (activeEl && root.contains(activeEl) && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName)) {
+        const inputs = Array.from(root.querySelectorAll('input, textarea, select'));
+        const index = inputs.indexOf(activeEl);
+        if (index !== -1) {
+          focusState = {
+            index,
+            tagName: activeEl.tagName,
+            type: activeEl.type || '',
+            selectionStart: typeof activeEl.selectionStart === 'number' ? activeEl.selectionStart : null,
+            selectionEnd: typeof activeEl.selectionEnd === 'number' ? activeEl.selectionEnd : null
+          };
+        }
+      }
+
+      let tabContent = '';
+      switch (state.activeTab) {
+        case 'leaves':
+          tabContent = renderLeavesTab();
+          break;
+        case 'employees':
+          tabContent = renderEmployeesTab();
+          break;
+        case 'laws':
+          tabContent = renderLawsTab();
+          break;
+        case 'io':
+          tabContent = renderDataIOTab();
+          break;
+        case 'settlement':
+        default:
+          tabContent = renderSettlementTab();
+          break;
+      }
+
+      const bannerHtml = statusBannerMessage ? `
+        <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 no-print">
+          <div class="rounded-xl px-4 py-3 text-xs sm:text-sm font-bold flex items-center justify-between border ${
+            statusBannerMessage.type === 'error'
+              ? 'bg-rose-50 text-rose-800 border-rose-200'
+              : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          }">
+            <span>${escapeHtml(statusBannerMessage.text)}</span>
+            <button type="button" onclick="statusBannerMessage = null; render();" class="text-xs underline cursor-pointer">إغلاق</button>
+          </div>
+        </div>
+      ` : '';
+
+      root.innerHTML = `
+        ${renderTopHeader()}
+        ${bannerHtml}
+        <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+          ${tabContent}
+        </main>
+        <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 no-print">
+          مُخلّص HR — منصة مستقلة لحساب المخالصات والإجازات ومتابعة الموظفين (الأردن • السعودية للسعوديين والأجانب • فلسطين)
+        </footer>
+        ${renderMorningReminderModal()}
+      `;
+
+      if (focusState) {
+        const updatedInputs = Array.from(root.querySelectorAll('input, textarea, select'));
+        const target = updatedInputs[focusState.index];
+        if (target && target.tagName === focusState.tagName) {
+          target.focus({ preventScroll: true });
+          if (
+            focusState.selectionStart !== null &&
+            typeof target.setSelectionRange === 'function' &&
+            target.type !== 'number' &&
+            target.type !== 'date' &&
+            target.type !== 'time'
+          ) {
+            try {
+              target.setSelectionRange(focusState.selectionStart, focusState.selectionEnd);
+            } catch (e) {
+              // ignore
+            }
+          }
+        }
+      }
+    }
+
+    // ============================================================================
+    // 7. EVENT HANDLERS
+    // ============================================================================
+    function handleSelectLaw(lawId) {
+      if (!LAW_PROFILES[lawId]) return;
+      state.activeLaw = lawId;
+      state.settlement.law = lawId;
+      const isSaudi = lawId === 'saudi_citizen' || lawId === 'saudi_expat';
+      state.settlement.noticeDays = isSaudi ? 60 : 30;
+      state.leaveSim.law = lawId;
+      saveState();
+      render();
+    }
+
+    function handleSelectTab(tabId) {
+      state.activeTab = tabId;
+      saveState();
+      render();
+    }
+
+    function updateSettlementField(field, value) {
+      state.settlement[field] = value;
+      if (field === 'law' && LAW_PROFILES[value]) {
+        state.activeLaw = value;
+        const isSaudi = value === 'saudi_citizen' || value === 'saudi_expat';
+        state.settlement.noticeDays = isSaudi ? 60 : 30;
+        if (isSaudi && !state.settlement.terminationType.startsWith('qiwa_')) {
+          state.settlement.terminationType = state.settlement.terminationType === 'resignation'
+            ? 'qiwa_resignation'
+            : (state.settlement.terminationType === 'gross_misconduct' ? 'qiwa_art80' : 'qiwa_art74_2');
+        } else if (!isSaudi && state.settlement.terminationType.startsWith('qiwa_')) {
+          state.settlement.terminationType = state.settlement.terminationType === 'qiwa_resignation'
+            ? 'resignation'
+            : (state.settlement.terminationType === 'qiwa_art80' ? 'gross_misconduct' : 'termination_without_cause');
+        }
+        saveState();
+        render();
+        return;
+      }
+      saveState();
+      if (typeof value === 'boolean' || field === 'terminationType' || field === 'saudiContractType') {
+        render();
+      } else {
+        refreshSettlementSummaryOnly();
+      }
+    }
+
+    function handleResetSettlement() {
+      state.settlement = getDefaultSettlement(state.activeLaw);
+      saveState();
+      render();
+    }
+
+    function handleLeaveLawChange(lawId) {
+      state.leaveSim.law = lawId;
+      state.activeLaw = lawId;
+      saveState();
+      render();
+    }
+
+    function updateLeaveField(field, value) {
+      state.leaveSim[field] = value;
+      saveState();
+      if (field === 'currentMonth') {
+        render();
+      } else {
+        refreshLeavesSummaryOnly();
+      }
+    }
+
+    function handleAddEmployee(e) {
+      e.preventDefault();
+      if (!newEmployeeForm.name.trim()) return;
+
+      const created = {
+        id: `emp-${Date.now()}`,
+        name: newEmployeeForm.name.trim(),
+        role: newEmployeeForm.role.trim() || 'موظف',
+        law: newEmployeeForm.law,
+        department: newEmployeeForm.department.trim() || 'عام',
+        hireDate: newEmployeeForm.hireDate || '2023-01-01',
+        basicSalary: Number(newEmployeeForm.basicSalary) || 0,
+        fixedAllowances: Number(newEmployeeForm.fixedAllowances) || 0,
+        annualLeaveEntitlement: Number(newEmployeeForm.annualLeaveEntitlement) || 14,
+        takenLeaveDays: Number(newEmployeeForm.takenLeaveDays) || 0,
+        note: newEmployeeForm.note.trim(),
+        reminderTime: newEmployeeForm.reminderTime || '08:30',
+        reminderActive: true,
+        lastNotifiedDate: ''
+      };
+
+      state.employees = [created, ...state.employees];
+      newEmployeeForm = {
+        ...newEmployeeForm,
+        name: '',
+        role: '',
+        note: ''
+      };
+      saveState();
+      setStatusBanner(`تمت إضافة الموظف "${created.name}" بنجاح.`);
+    }
+
+    function updateEmployeeNote(empId, noteVal) {
+      state.employees = state.employees.map((emp) =>
+        emp.id === empId ? { ...emp, note: noteVal, lastNotifiedDate: '' } : emp
+      );
+      saveState();
+    }
+
+    function updateEmployeeReminderTime(empId, timeVal) {
+      state.employees = state.employees.map((emp) =>
+        emp.id === empId ? { ...emp, reminderTime: timeVal || '08:30', lastNotifiedDate: '' } : emp
+      );
+      saveState();
+      render();
+    }
+
+    function toggleEmployeeReminder(empId, checked) {
+      state.employees = state.employees.map((emp) =>
+        emp.id === empId ? { ...emp, reminderActive: checked } : emp
+      );
+      saveState();
+      render();
+    }
+
+    function deleteEmployee(empId) {
+      state.employees = state.employees.filter((emp) => emp.id !== empId);
+      saveState();
+      render();
+    }
+
+    function loadEmployeeIntoSettlement(empId) {
+      const emp = state.employees.find((e) => e.id === empId);
+      if (!emp) return;
+      const leaveLeft = Math.max(0, (Number(emp.annualLeaveEntitlement) || 0) - (Number(emp.takenLeaveDays) || 0));
+      const isSaudi = emp.law === 'saudi_citizen' || emp.law === 'saudi_expat';
+      state.activeLaw = emp.law;
+      state.settlement = {
+        ...state.settlement,
+        employeeName: emp.name,
+        law: emp.law,
+        hireDate: emp.hireDate || '2022-01-01',
+        endDate: new Date().toISOString().slice(0, 10),
+        basicSalary: Number(emp.basicSalary) || 0,
+        fixedAllowances: Number(emp.fixedAllowances) || 0,
+        remainingLeaveDays: leaveLeft,
+        noticeDays: isSaudi ? 60 : 30
+      };
+      state.activeTab = 'settlement';
+      saveState();
+      render();
+    }
+
+    function handlePreviewMorningAlert() {
+      state.morningAlertOpen = true;
+      state.simulatedAlert = true;
+      const notes = getDueMorningNotes(true);
+      if (notes.length > 0) {
+        triggerBrowserNotification(notes);
+      }
+      render();
+    }
+
+    function closeMorningAlert() {
+      state.morningAlertOpen = false;
+      state.simulatedAlert = false;
+      render();
+    }
+
+    function handleRequestNotificationPermission() {
+      if (!('Notification' in window)) {
+        setStatusBanner('هذا المتصفح لا يدعم إشعارات النظام؛ ستعمل التنبيهات الصباحية داخل التطبيق الساعة 08:30.', 'error');
+        return;
+      }
+      Notification.requestPermission().then((perm) => {
+        if (perm === 'granted') {
+          setStatusBanner('تم تفعيل إشعارات المتصفح لتنبيه الساعة 08:30 صباحاً.');
+        } else {
+          setStatusBanner('لم يتم منح إذن إشعارات المتصفح؛ يمكنك الاعتماد على نافذة التنبيه داخل التطبيق.', 'error');
+        }
+        render();
+      }).catch(() => {
+        render();
+      });
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          importDraftText = String(reader.result || '');
+          const parsed = parseImportedData(importDraftText);
+          state.employees = parsed.employees;
+          if (parsed.settlement) state.settlement = { ...state.settlement, ...parsed.settlement };
+          if (parsed.leaveSim) state.leaveSim = { ...state.leaveSim, ...parsed.leaveSim };
+          saveState();
+          setStatusBanner(`تم تحميل ${parsed.employees.length} سجل موظف بنجاح من الملف.`);
+        } catch (err) {
+          setStatusBanner(`تعذر قراءة الملف: ${err.message}`, 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function handleApplyPastedImport() {
+      try {
+        const parsed = parseImportedData(importDraftText);
+        state.employees = parsed.employees;
+        if (parsed.settlement) state.settlement = { ...state.settlement, ...parsed.settlement };
+        if (parsed.leaveSim) state.leaveSim = { ...state.leaveSim, ...parsed.leaveSim };
+        saveState();
+        setStatusBanner(`تم استيراد ${parsed.employees.length} سجل موظف بنجاح.`);
+      } catch (err) {
+        setStatusBanner(`خطأ في صيغة البيانات: ${err.message}`, 'error');
+      }
+    }
+
+    function fillSampleImportText() {
+      importDraftText = [
+        'name,role,law,basicSalary,fixedAllowances,annualLeaveEntitlement,takenLeaveDays,note',
+        'رنا منصور,أخصائية موارد بشرية,jordan,600,100,14,4,متابعة تسجيل الضمان وتحديث ملف الموظف',
+        'فيصل القحطاني,مدير مبيعات,saudi_citizen,9000,2000,21,7,مراجعة عمولات الربع الحالي وتصفية الإجازة'
+      ].join('\n');
+      render();
+    }
+
+    // ============================================================================
+    // 8. INITIALIZATION & PERIODIC REMINDER CHECKER
+    // ============================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      render();
+      checkScheduledReminders();
+      setInterval(checkScheduledReminders, 30000);
+    });
+  </script>
+</body>
+</html>
